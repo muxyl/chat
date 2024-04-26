@@ -6,19 +6,13 @@ const knowledgeBase = {
 };
 
 document.getElementById('send-button').addEventListener('click', sendMessage);
+document.getElementById('download-button').addEventListener('click', downloadChatHistory);
 
-// Load chat history from localStorage
-let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+// Initialize chat history
+let chatHistory = [];
 
 // Render chat history
-chatHistory.forEach(message => {
-    const { sender, text } = message;
-    if (sender === 'user') {
-        addUserMessage(text);
-    } else if (sender === 'bot') {
-        addBotMessage(text);
-    }
-});
+renderChatHistory();
 
 function sendMessage() {
     const userInput = document.getElementById('user-input').value.trim();
@@ -32,16 +26,12 @@ function getBotResponse(userInput) {
     const botResponse = knowledgeBase[userInput];
     if (botResponse) {
         addBotMessage(botResponse);
-        // Save bot response to chat history
-        chatHistory.push({ sender: 'bot', text: botResponse });
+        saveChatToHistory('bot', botResponse);
     } else {
         const errorMessage = "Sorry, I don't understand that.";
         addBotMessage(errorMessage);
-        // Save error message to chat history
-        chatHistory.push({ sender: 'bot', text: errorMessage });
+        saveChatToHistory('bot', errorMessage);
     }
-    // Save updated chat history to localStorage
-    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 }
 
 function addUserMessage(message) {
@@ -51,10 +41,7 @@ function addUserMessage(message) {
     messageItem.textContent = message;
     messagesContainer.appendChild(messageItem);
     scrollToBottom(messagesContainer);
-    // Save user message to chat history
-    chatHistory.push({ sender: 'user', text: message });
-    // Save updated chat history to localStorage
-    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    saveChatToHistory('user', message);
 }
 
 function addBotMessage(message) {
@@ -66,6 +53,36 @@ function addBotMessage(message) {
     scrollToBottom(messagesContainer);
 }
 
+function saveChatToHistory(sender, message) {
+    chatHistory.push({ sender, message });
+}
+
+function renderChatHistory() {
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.innerHTML = ''; // Clear existing messages
+    chatHistory.forEach(chat => {
+        const messageItem = document.createElement('li');
+        messageItem.classList.add('message', chat.sender === 'user' ? 'user-message' : 'bot-message');
+        messageItem.textContent = chat.message;
+        messagesContainer.appendChild(messageItem);
+    });
+    scrollToBottom(messagesContainer);
+}
+
 function scrollToBottom(element) {
     element.scrollTop = element.scrollHeight;
+}
+
+// Function to download chat history as a text file
+function downloadChatHistory() {
+    const chatText = chatHistory.map(chat => `${chat.sender}: ${chat.message}`).join('\n');
+    const blob = new Blob([chatText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat_history.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
