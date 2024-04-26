@@ -7,6 +7,19 @@ const knowledgeBase = {
 
 document.getElementById('send-button').addEventListener('click', sendMessage);
 
+// Load chat history from localStorage
+let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+// Render chat history
+chatHistory.forEach(message => {
+    const { sender, text } = message;
+    if (sender === 'user') {
+        addUserMessage(text);
+    } else if (sender === 'bot') {
+        addBotMessage(text);
+    }
+});
+
 function sendMessage() {
     const userInput = document.getElementById('user-input').value.trim();
     if (userInput === '') return; // Do nothing if input is empty
@@ -19,9 +32,16 @@ function getBotResponse(userInput) {
     const botResponse = knowledgeBase[userInput];
     if (botResponse) {
         addBotMessage(botResponse);
+        // Save bot response to chat history
+        chatHistory.push({ sender: 'bot', text: botResponse });
     } else {
-        addBotMessage("Sorry, I don't understand that.");
+        const errorMessage = "Sorry, I don't understand that.";
+        addBotMessage(errorMessage);
+        // Save error message to chat history
+        chatHistory.push({ sender: 'bot', text: errorMessage });
     }
+    // Save updated chat history to localStorage
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 }
 
 function addUserMessage(message) {
@@ -31,6 +51,10 @@ function addUserMessage(message) {
     messageItem.textContent = message;
     messagesContainer.appendChild(messageItem);
     scrollToBottom(messagesContainer);
+    // Save user message to chat history
+    chatHistory.push({ sender: 'user', text: message });
+    // Save updated chat history to localStorage
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 }
 
 function addBotMessage(message) {
