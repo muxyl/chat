@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morpheme Analyzer</title>
+    <style>
+        .chat-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .chat-box {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+
+        .user-message {
+            color: blue;
+            margin-bottom: 5px;
+        }
+
+        .assistant-message {
+            color: green;
+            margin-top: 5px;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 70px);
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .close-match {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chatBox">
+            <div class="chat-message">
+                <div class="user-message">User: <span id="userInput"></span></div>
+                <div class="assistant-message" id="assistantResponse"></div>
+            </div>
+        </div>
+        <input type="text" id="userInputBox" placeholder="Type your sentence here...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <div id="results"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/natural"></script>
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById("userInputBox").value;
+            const chatBox = document.getElementById("chatBox");
+            const userInputSpan = document.getElementById("userInput");
+            const assistantResponseDiv = document.getElementById("assistantResponse");
+
+            // Display user message
+            userInputSpan.textContent = userInput;
+            chatBox.innerHTML += `<div class="chat-message"><div class="user-message">User: ${userInput}</div></div>`;
+            
+            // Generate assistant response
+            const assistantResponse = generateAssistantResponse(userInput);
+            chatBox.innerHTML += `<div class="chat-message"><div class="assistant-message">Assistant: ${assistantResponse}</div></div>`;
+
+            // Tokenize the sentence into words
+            const tokenizer = new natural.WordTokenizer();
+            const words = tokenizer.tokenize(userInput);
+
+            // Initialize WordNet lemmatizer
+            const lemmatizer = new natural.WordNetLemmatizer();
+
+            // Lemmatize each word
+            let lemmatizedWords = [];
+            words.forEach(word => {
+                const morphemes = lemmatizer.lemmatize(word);
+                lemmatizedWords.push(morphemes);
+            });
+
+            // Get close match results
+            const closeMatchResults = getCloseMatchResults(lemmatizedWords);
+
+            // Display close match results
+            displayCloseMatchResults(closeMatchResults);
+        }
+
+        function getCloseMatchResults(words) {
+            // Example function to get close match results (you can replace this with your own implementation)
+            return ["fox", "dog"];
+        }
+
+        function generateAssistantResponse(userInput) {
+            return "I found some close matches for the words you provided.";
+        }
+
+        function displayCloseMatchResults(results) {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "";
+            results.forEach(result => {
+                resultsDiv.innerHTML += `<div class="close-match">${result}</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
