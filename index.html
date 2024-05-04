@@ -5,7 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatGPT Demo</title>
     <style>
-        /* CSS styles */
+        #chat-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: calc(100% - 70px);
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -16,6 +54,44 @@
         <br><button id="download-button">Download Chat History</button>
     </div>
 
-    <script src="chat.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const messagesList = document.getElementById("messages");
+            const userInput = document.getElementById("user-input");
+            const sendButton = document.getElementById("send-button");
+            const downloadButton = document.getElementById("download-button");
+
+            // Event listener for sending a message
+            sendButton.addEventListener("click", function() {
+                const message = userInput.value;
+                if (message.trim() !== "") {
+                    appendMessage("user", message);
+                    userInput.value = ""; // Clear the input field
+                    // Here you can add code to send the message to ChatGPT or perform other actions
+                }
+            });
+
+            // Function to append a message to the chat area
+            function appendMessage(sender, message) {
+                const li = document.createElement("li");
+                li.textContent = `${sender}: ${message}`;
+                messagesList.appendChild(li);
+                // Scroll to the bottom of the chat area
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+
+            // Event listener for downloading chat history
+            downloadButton.addEventListener("click", function() {
+                const messagesText = Array.from(messagesList.children).map(li => li.textContent).join("\n");
+                const blob = new Blob([messagesText], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "chat_history.txt";
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
 </body>
 </html>
