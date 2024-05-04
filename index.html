@@ -5,69 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatGPT Demo</title>
     <style>
-        #chat-container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        /* CSS styles */
+        #loading-bar {
+            display: none;
+            width: 100%;
+            height: 4px;
+            background-color: #ddd;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
         }
-        #messages {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            background-color: #f9f9f9;
-        }
-        li {
-            margin-bottom: 5px;
-        }
-        input[type="text"] {
-            width: calc(100% - 70px);
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            padding: 5px 10px;
-            border-radius: 5px;
+        #loading-bar .progress {
+            width: 0;
+            height: 100%;
             background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        button:hover {
-            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <ul id="messages"></ul>
-        <input type="text" id="user-input" placeholder="Type your message...">
-        <br><button id="send-button">Send</button>
-        <br><button id="download-button">Download Chat History</button>
+    <div id="loading-bar">
+        <div class="progress"></div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Example ChatGPT functionality
+            function sendMessageToChatGPT(message) {
+                // Placeholder function to simulate sending a message to ChatGPT
+                console.log("Sending message to ChatGPT:", message);
+                return new Promise((resolve, reject) => {
+                    // Simulate a delay before receiving a response from ChatGPT
+                    setTimeout(() => {
+                        const response = "This is a response from ChatGPT to the message: " + message;
+                        console.log("Received response from ChatGPT:", response);
+                        resolve(response);
+                    }, 2000); // Simulated delay of 2 seconds
+                });
+            }
+
+            // Chat interface functionality
             const messagesList = document.getElementById("messages");
             const userInput = document.getElementById("user-input");
             const sendButton = document.getElementById("send-button");
             const downloadButton = document.getElementById("download-button");
+            const loadingBar = document.getElementById("loading-bar");
 
             // Event listener for sending a message
             sendButton.addEventListener("click", function() {
-                const message = userInput.value;
-                if (message.trim() !== "") {
+                const message = userInput.value.trim();
+                if (message !== "") {
+                    startLoading();
                     appendMessage("user", message);
                     userInput.value = ""; // Clear the input field
-                    // Here you can add code to send the message to ChatGPT or perform other actions
+                    // Send message to ChatGPT
+                    sendMessageToChatGPT(message)
+                        .then(response => {
+                            appendMessage("ChatGPT", response);
+                            stopLoading();
+                        })
+                        .catch(error => {
+                            console.error("Error sending message to ChatGPT:", error);
+                            appendMessage("ChatGPT", "An error occurred while processing your message.");
+                            stopLoading();
+                        });
                 }
             });
 
@@ -80,8 +81,28 @@
                 messagesList.scrollTop = messagesList.scrollHeight;
             }
 
+            // Function to start the loading animation
+            function startLoading() {
+                loadingBar.style.display = "block";
+                loadingBar.querySelector(".progress").style.width = "0";
+                let width = 0;
+                const interval = setInterval(function() {
+                    width += 1;
+                    loadingBar.querySelector(".progress").style.width = width + "%";
+                    if (width >= 100) {
+                        clearInterval(interval);
+                    }
+                }, 20);
+            }
+
+            // Function to stop the loading animation
+            function stopLoading() {
+                loadingBar.style.display = "none";
+            }
+
             // Event listener for downloading chat history
             downloadButton.addEventListener("click", function() {
+                startLoading();
                 const messagesText = Array.from(messagesList.children).map(li => li.textContent).join("\n");
                 const blob = new Blob([messagesText], { type: "text/plain" });
                 const url = URL.createObjectURL(blob);
@@ -90,8 +111,16 @@
                 a.download = "chat_history.txt";
                 a.click();
                 URL.revokeObjectURL(url);
+                stopLoading();
             });
         });
     </script>
+
+    <div id="chat-container">
+        <ul id="messages"></ul>
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <br><button id="send-button">Send</button>
+        <br><button id="download-button">Download Chat History</button>
+    </div>
 </body>
 </html>
